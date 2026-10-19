@@ -6,6 +6,26 @@
 
 Start here: [installation and operation (English)](docs/INSTALLATION.md) · [пошаговая инструкция на русском](docs/LOCAL-SETUP-RU.md) · [unfinished features](ROADMAP.md).
 
+![RFQ Workbench — local document upload and procurement workspace](docs/images/01-workspace.png)
+
+## A look inside
+
+Actual screenshots from the running application, using fictional enquiry data and suppliers at `example.com`. Results come from the local model and require human review. No real customer records or connected Gmail account are shown.
+
+### Review extracted product lines
+
+Inspect quantities, specifications, categories and source excerpts; unresolved positions remain visibly unapproved.
+
+![Product review with extracted fields, source citations and human approval controls](docs/images/02-product-review.png)
+
+### Prepare supplier RFQs
+
+Review category-specific message bodies, BCC recipients and Excel reply templates before approving a local export. This screen prepares files; it does not send email or create Gmail drafts.
+
+![RFQ preview with fictional suppliers and Excel response attachments](docs/images/03-rfq-preview.png)
+
+[Screenshot details and reproduction](docs/SCREENSHOTS.md) · [Current features and limitations](ROADMAP.md)
+
 Portfolio implementation of an enquiry-to-quotation workflow, developed in working, verified stages. This is an independent project: no customer prototype, production email or accounting data has been provided.
 
 ## Current stage
