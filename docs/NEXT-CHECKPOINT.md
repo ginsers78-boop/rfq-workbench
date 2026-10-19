@@ -1,0 +1,13 @@
+# Next checkpoint: complete the first document-to-RFQ slice
+
+This is unfinished planned work, not currently available functionality. See [the public roadmap](../ROADMAP.md). The author will resume updates and completion if there is enough star/community interest; there is no announced deadline.
+
+1. Expand the labeled benchmark and score descriptions/specifications without requiring arbitrary exact wording. Cover distinct product vocabulary and ambiguous source rows.
+2. Typed PDF, XLSX, DOCX, TXT and pasted-text readers are implemented. Real local OCR handles PNG/JPEG/WebP and scanned/mixed PDFs via a durable queue. Long documents are partitioned into bounded non-overlapping source sections, with record-ID provenance, literal quantity validation and full-source review. Explicit oversized-section and dense-page limits remain. Add embedded Office image OCR and expand representative extraction/OCR quality evaluation; these remaining limits are not silently bypassed.
+3. Persistent SQLite requirement records, stable line IDs, immutable original line numbers/quotes, manual missing-line addition, review status, saved revision history and reasoned exclusion of incorrect rows are implemented. Historical versions overwritten before history was added cannot be reconstructed.
+4. Review UI, category configuration, a persistent supplier registry, per-category selection, activation/deactivation and stable supplier IDs are implemented and tested. The working database is not seeded with fictional suppliers.
+5. Actual per-category RFQ bodies and Excel reply templates are implemented with an explicit field allowlist, declared/suggested confidential markers, independent final ZIP/Office XML scanning and human preview approval. Outdated in-app exports are blocked. The ZIP/manifest contain BCC contacts and are internal; only each message body and corresponding Excel should be used in supplier correspondence. No original customer attachment is included. No universal secret-detection guarantee is claimed.
+6. Connect a user-authorized test Gmail/Sheets account, then create and inspect actual Gmail drafts. No automatic sending of supplier RFQs: user approval remains mandatory.
+7. Produce the first milestone's test evidence, setup instructions and walkthrough. Record untested integrations openly instead of marking the milestone complete.
+
+Paid services remain disconnected. If an external capability cannot be verified without an account or client-owned service, identify that dependency and finish independent work first. No fake API success, invented emails or placeholder database rows are acceptable.

@@ -1,0 +1,6 @@
+[
+  {"id": "Fasteners", "description": "Bolts, nuts, washers, screws and other mechanical fasteners."},
+  {"id": "Electrical", "description": "Electrical cables, wiring, switches and electrical fittings."},
+  {"id": "Pipes and fittings", "description": "Pipes, elbows, tees, valves and plumbing fittings, including PVC elbows."},
+  {"id": "Unclassified", "description": "Use only when none of the defined categories fits."}
+]

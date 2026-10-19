@@ -1,0 +1,18 @@
+{
+  "id": "FICTIONAL-REQ-002",
+  "fictional": true,
+  "source": "Customer: Fictional Cedar Engineering\nCustomer reference: PRIVATE-CEDAR-88\n\nItem | Requirement | Required quantity | Unit\n10 | Brass ball valve, 1/2 inch BSP, PN16 | 12 | pcs\n20 | Insulated copper wire, 2.5 mm2, blue | 350 | m\n30 | Stainless steel flat washers, M8 | 500 | pcs\n40 | Galvanised screw, M6x30 | not specified | not specified\nDelivery location will be confirmed separately.",
+  "categories": [
+    {"id": "Fasteners", "description": "Bolts, nuts, washers, screws and other mechanical fasteners."},
+    {"id": "Electrical", "description": "Electrical cables, wiring, switches and electrical fittings."},
+    {"id": "Pipes and fittings", "description": "Pipes, elbows, tees, valves and plumbing fittings."},
+    {"id": "Unclassified", "description": "Use only when none of the defined categories fits."}
+  ],
+  "expected": [
+    {"line_number": "10", "quantity": 12, "unit": "pcs", "category": "Pipes and fittings"},
+    {"line_number": "20", "quantity": 350, "unit": "m", "category": "Electrical"},
+    {"line_number": "30", "quantity": 500, "unit": "pcs", "category": "Fasteners"},
+    {"line_number": "40", "quantity": null, "unit": null, "category": "Fasteners"}
+  ],
+  "sensitive_markers": ["Fictional Cedar Engineering", "PRIVATE-CEDAR-88"]
+}

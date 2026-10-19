@@ -1,0 +1,6 @@
+{
+  "name": "rfq-workbench-browser-checks",
+  "private": true,
+  "scripts": {"test:browser": "node tests/browser.cjs", "test:rfq": "node tests/rfq-browser.cjs", "test:ocr": "node tests/ocr-browser.cjs", "test:long": "node tests/long-browser.cjs"},
+  "devDependencies": {"playwright": "1.64.1"}
+}

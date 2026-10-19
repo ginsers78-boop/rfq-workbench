@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RFQ Workbench · Document review</title><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/procurement.css"><script src="/app.js" defer></script><script src="/procurement.js" defer></script><script src="/jobs.js" defer></script></head>
+<body>
+<header><a class="brand" href="/">RFQ<span>Workbench</span></a><span class="local">● Local workspace</span></header>
+<main>
+  <div class="intro"><p class="eyebrow">ENQUIRY → REVIEW → RFQ</p><h1>A clear starting point<br>for your next quotation.</h1><p>Review product lines and prepare category-specific requests for your suppliers.</p></div>
+  <div class="notice">Local AI · No paid API · No emails sent. Original text and reviews are stored on this computer. JSON exports contain internal customer information: do not send them to suppliers.</div>
+  <details class="panel"><summary>Unfinished portfolio beta · current limitations and future development</summary><p>Working now: local document extraction/OCR, human review, supplier records and downloadable RFQ bodies/Excel templates. This is a partial implementation, not a production-ready quotation platform.</p><p>Still to build: OCR for images embedded in Word/Excel; Gmail drafts and Google Sheets integration; enquiry/reply intake and matching; reminders, supplier comparison, currencies and landed costs; semantic quotation history; margins and approvals; customer PDF quotations; outcomes, purchase-order matching and reports; production deployment and representative acceptance testing.</p><p>If this repository receives enough stars and community interest, I will return to it, publish updates and complete the remaining functionality myself. No star threshold or completion date has been announced.</p></details>
+  <p id="message" role="status" aria-live="polite" hidden></p>
+  <div class="layout"><aside class="panel"><div class="panel-heading"><h2>Recent requirements</h2><button id="refresh" class="subtle" type="button">Refresh</button></div><p class="hint">Latest 100 saved records</p><div id="history"></div></aside>
+  <section>
+    <details class="panel" id="supplier-panel"><summary>Supplier directory · add or edit permanent supplier records</summary>
+      <p class="hint">No suppliers are preloaded. Enter your own authorised contacts. These records stay local; no email is sent.</p><div id="supplier-list"></div>
+      <form id="supplier-form"><h2 id="supplier-heading">Add supplier</h2><div class="line-grid"><label>Name<input id="supplier-name" maxlength="200" required></label><label class="wide">Email<input id="supplier-email" type="email" maxlength="254" required></label></div><fieldset><legend>Categories</legend><div id="supplier-categories"></div></fieldset><label class="approve"><input id="supplier-active" type="checkbox" checked>Active supplier</label><div class="actions"><button type="submit">Save supplier</button><button type="button" id="supplier-reset" class="secondary">New supplier</button></div></form>
+    </details>
+    <form id="upload" class="panel"><div class="panel-heading"><h2>1. Add a requirement</h2><span class="step">INPUT</span></div>
+      <label class="file-label" for="file">Choose an enquiry document<input id="file" type="file" accept=".txt,.pdf,.docx,.xlsx,.png,.jpg,.jpeg,.webp"><span>PDF, TXT, DOCX, XLSX, PNG, JPEG or WebP · 10 MB maximum</span></label>
+      <p class="hint">Up to 50 PDF pages and 1 MiB of extracted UTF-8 text. Long documents use bounded model parts; enable background processing for progress. Excel must contain values, not formulas. OCR requires comparison with the source.</p>
+      <label class="approve"><input id="ocr-storage" type="checkbox">Enable background processing for long documents, scans and images. The uploaded file or pasted text is stored locally until processing finishes; OCR page previews remain with the requirement until deletion.</label>
+      <label for="text">Or paste the requirement</label><textarea id="text" rows="6" placeholder="1. Stainless steel hex bolt M10 × 50, 120 pcs…"></textarea>
+      <div class="actions"><button id="analyze" type="submit">Extract product lines <span>↗</span></button><span id="progress" class="hint">Runs on your local Ollama model.</span></div>
+    </form>
+    <section class="panel" id="processing-panel" hidden><h2>Local processing queue</h2><p class="hint">Closing this tab does not stop queued work. The local application and Ollama must stay on. After an application restart, unfinished tasks are processed again from the stored file.</p><div id="processing-jobs"></div></section>
+    <section id="review" class="panel" hidden><div class="panel-heading"><h2>2. Check every product line</h2><span id="status" class="step"></span></div><p id="record-info" class="hint"></p><div id="findings"></div>
+      <details><summary>Original document text / OCR transcript</summary><pre id="source"></pre></details>
+      <section id="ocr-source" hidden><p class="finding">OCR may omit or misread text even when the model reports no uncertainty. Compare every page and product against these locally stored previews.</p><div id="source-pages"></div><label class="approve"><input id="source-verified" type="checkbox">I compared the OCR transcript and product lines with the source page images.</label></section>
+      <label class="approve" id="coverage-review" hidden><input id="coverage-verified" type="checkbox">I compared the complete source and all numbered sections with the included/excluded product lines, including repeated source numbers.</label>
+      <p class="hint">Review descriptions and specifications against the original. Approving a line requires a quantity, unit and category. Original line numbers stay attached to the saved record.</p>
+      <form id="review-form"><div id="lines"></div><div class="actions"><button type="button" id="add-line" class="secondary">Add a missed line</button><button type="submit" id="save">Save review</button><a id="export" class="button secondary">Download saved JSON</a><button id="delete" class="danger" type="button">Delete record</button></div></form>
+      <p id="dirty" class="hint" hidden>Unsaved edits. Save before downloading; the export contains the last saved version.</p>
+      <details><summary>Saved revision history</summary><div id="audit-history"></div></details>
+    </section>
+    <section id="procurement" class="panel" hidden><div class="panel-heading"><h2>3. Protect customer information</h2><span class="step">PRIVACY</span></div>
+      <p class="hint">Read the entire source. List every confidential customer name, reference and selling price, one per line. Recognised customer headers are added automatically. This check finds declared data; it cannot identify every unknown secret.</p>
+      <form id="privacy-form"><label for="privacy-markers">Confidential data that must not appear in RFQs</label><textarea id="privacy-markers" rows="5"></textarea><label class="approve"><input id="privacy-confirm" type="checkbox" required>I checked the source and listed all confidential customer information.</label><div class="actions"><button type="submit">Save privacy checklist</button></div></form>
+      <div class="panel-heading rfq-heading"><h2>4. Select suppliers and prepare RFQs</h2><span class="step">LOCAL EXPORT</span></div><p class="hint">Complete the saved review and privacy checklist first. Each included category needs at least one active supplier. Recipients belong in BCC.</p>
+      <form id="rfq-form"><div id="supplier-selection"></div><div class="actions"><button type="submit" id="prepare-rfq">Prepare RFQ preview</button></div></form><div id="saved-rfqs"></div>
+      <section id="rfq-preview" hidden><h3>Inspect the exact RFQ content</h3><p class="finding">The ZIP and dispatch manifest are internal and contain supplier contacts. Send only each category's reviewed email body and reply.xlsx. Never attach the ZIP, manifest or original enquiry.</p><div id="rfq-messages"></div><label class="approve"><input id="rfq-confirm" type="checkbox">I checked all recipients, product lines and confidential information.</label><div class="actions"><button type="button" id="approve-rfq">Approve local export</button><a id="download-rfq" class="button secondary" hidden>Download RFQ ZIP</a></div></section>
+    </section>
+  </section></div>
+  <footer>Unfinished portfolio beta · Local vision OCR and RFQ preparation · Gmail and pricing are not connected. No email is sent. Further development depends on community interest; see the repository roadmap.</footer>
+</main></body></html>

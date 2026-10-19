@@ -1,0 +1,113 @@
+/* Actual local server, UI, database, model and downloaded ZIP. No API interception. */
+const { chromium } = require('playwright');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '..');
+const base = process.env.RFQ_BASE_URL || 'http://127.0.0.1:8766';
+(async () => {
+  const browser = await chromium.launch({headless: true});
+  const page = await browser.newPage({viewport: {width: 1440, height: 1000}, acceptDownloads: true});
+  const errors = [], vendors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  let identifier;
+  try {
+    await page.goto(base);
+    await page.waitForFunction(() => document.querySelectorAll('#supplier-categories input').length === 3);
+    await page.locator('#supplier-panel summary').click();
+    const run = Date.now();
+    for (const [i, category] of ['Fasteners', 'Fasteners', 'Electrical', 'Pipes and fittings'].entries()) {
+      await page.locator('#supplier-name').fill(`Fictional QA Supplier ${i} ${run}`);
+      await page.locator('#supplier-email').fill(`qa-${run}-${i}@example.com`);
+      await page.locator('#supplier-categories').getByLabel(category, {exact:true}).check();
+      const response = page.waitForResponse(res => res.url() === `${base}/api/suppliers` && res.request().method() === 'POST');
+      await page.getByRole('button', {name:'Save supplier', exact:true}).click();
+      const res = await response;
+      assert.equal(res.status(), 200, await res.text());
+      vendors.push(await res.json());
+      await page.waitForFunction(() => document.getElementById('supplier-name').value === '');
+    }
+    await page.locator('#file').setInputFiles(path.join(root, 'demo/requirement.txt'));
+    const extracted = page.waitForResponse(res => res.url() === `${base}/api/analyze`, {timeout:260000});
+    await page.getByRole('button', {name:/Extract product/}).click();
+    const extraction = await extracted;
+    assert.equal(extraction.status(), 201, await extraction.text());
+    identifier = (await extraction.json()).id;
+    await page.waitForFunction(() => document.querySelectorAll('#lines .line').length === 4);
+    const cards = page.locator('#lines .line');
+    for (let i=0;i<3;i++) await cards.nth(i).locator('[data-key=approved]').check();
+    await cards.nth(3).locator('[data-key=excluded]').check();
+    await cards.nth(3).locator('[data-key=exclusion_reason]').fill('Customer removed this position in the fictional QA scenario');
+    await cards.nth(2).locator('[data-key=description]').fill('PVC elbow PRIVATE-CUSTOMER-442');
+    async function saveReview() {
+      const response = page.waitForResponse(res => res.url().endsWith(`/${identifier}/review`) && res.request().method()==='POST');
+      await page.getByRole('button', {name:'Save review', exact:true}).click();
+      const res = await response; assert.equal(res.status(),200,await res.text());
+      await page.waitForFunction(() => document.getElementById('status').textContent === 'REVIEWED');
+      await page.waitForFunction(() => document.getElementById('procurement').hidden === false);
+    }
+    await saveReview();
+    await page.waitForFunction(() => document.getElementById('privacy-markers').value.includes('PRIVATE-CUSTOMER-442'));
+    await page.locator('#privacy-confirm').check();
+    const privacyResponse = page.waitForResponse(res => res.url().endsWith(`/${identifier}/privacy`) && res.request().method()==='POST');
+    await page.getByRole('button', {name:'Save privacy checklist',exact:true}).click();
+    assert.equal((await privacyResponse).status(),200);
+    await page.waitForFunction(() => document.getElementById('message').textContent.startsWith('Privacy checklist saved'));
+    async function selectSuppliers() {
+      await page.waitForFunction(() => document.querySelectorAll('#supplier-selection fieldset').length === 3);
+      for (const vendor of vendors) await page.locator(`#supplier-selection input[value="${vendor.id}"]`).check();
+    }
+    await selectSuppliers();
+    let response = page.waitForResponse(res => res.url().endsWith(`/${identifier}/rfqs`) && res.request().method()==='POST');
+    await page.getByRole('button',{name:'Prepare RFQ preview',exact:true}).click();
+    assert.equal((await response).status(),400);
+    await page.waitForFunction(() => document.getElementById('message').textContent.includes('confidential'));
+    await cards.nth(2).locator('[data-key=description]').fill('PVC elbow');
+    await saveReview();
+    await selectSuppliers();
+    response = page.waitForResponse(res => res.url().endsWith(`/${identifier}/rfqs`) && res.request().method()==='POST');
+    await page.getByRole('button',{name:'Prepare RFQ preview',exact:true}).click();
+    const prepared = await response;
+    assert.equal(prepared.status(),201,await prepared.text());
+    const rfq = await prepared.json();
+    assert.equal(rfq.messages.length,3);
+    assert.equal(rfq.messages.find(message => message.category==='Fasteners').bcc.length,2);
+    assert.equal(rfq.messages.flatMap(message=>message.lines).length,3);
+    assert.ok(!JSON.stringify(rfq.messages).includes('PRIVATE-CUSTOMER-442'));
+    const blockedDownload = await page.request.get(`${base}/api/rfqs/${rfq.id}/download`);
+    assert.equal(blockedDownload.status(),404);
+    assert.match((await blockedDownload.json()).error,/approve/);
+    await page.getByRole('button',{name:'Approve local export',exact:true}).click();
+    assert.match(await page.locator('#message').textContent(),/confirm/);
+    await page.locator('#rfq-confirm').check();
+    await page.getByRole('button',{name:'Approve local export',exact:true}).click();
+    await page.locator('#download-rfq').waitFor({state:'visible'});
+    const pendingDownload = page.waitForEvent('download');
+    await page.locator('#download-rfq').click();
+    await (await pendingDownload).saveAs(path.join(root,'data','rfq-browser-package.zip'));
+    await page.locator('#rfq-preview').screenshot({path:path.join(root,'data','rfq-preview-desktop.png')});
+    await page.setViewportSize({width:390,height:844});
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true);
+    await page.locator('#rfq-preview').screenshot({path:path.join(root,'data','rfq-preview-mobile.png')});
+    await page.reload();
+    await page.locator('#history .history-item').first().click();
+    await page.locator('#saved-rfqs .history-item').first().click();
+    await page.locator('#rfq-preview').waitFor({state:'visible'});
+    assert.equal(await page.locator('#rfq-messages .rfq-message').count(),3);
+    const config = await (await page.request.get(`${base}/api/config`)).json();
+    const headers = {'X-Workbench-Token':config.token,Origin:base};
+    const revised = await page.request.post(`${base}/api/suppliers`, {headers,data:{...vendors[0],name:'Updated fictional QA supplier'}});
+    assert.equal(revised.status(),200);
+    assert.equal((await revised.json()).id,vendors[0].id);
+    assert.equal((await page.request.get(`${base}/api/rfqs/${rfq.id}/download`)).status(),404);
+    const history = await (await page.request.get(`${base}/api/requirements/${identifier}/history`)).json();
+    assert.equal(history.length,4);
+    assert.equal(history[1].record.lines[2].description,'PVC elbow PRIVATE-CUSTOMER-442');
+    assert.deepEqual(errors,[]);
+    fs.writeFileSync(path.join(root,'data','rfq-browser-report.json'),JSON.stringify({passed:true,rfq_id:rfq.id,categories:3,included_lines:3,bcc_suppliers:4,leak_blocked:true,history_revisions:history.length,approval_download_reload:true,supplier_change_blocks_old_package:true,mobile_overflow:false,page_errors:errors},null,2));
+    console.log(fs.readFileSync(path.join(root,'data','rfq-browser-report.json'),'utf8'));
+    assert.equal((await page.request.post(`${base}/api/requirements/${identifier}/delete`,{headers,data:{}})).status(),200);
+    assert.equal((await page.request.get(`${base}/api/rfqs/${rfq.id}`)).status(),404);
+    for (const vendor of await (await page.request.get(`${base}/api/suppliers`)).json()) if (vendors.some(ours=>ours.id===vendor.id)) await page.request.post(`${base}/api/suppliers`,{headers,data:{...vendor,active:false}});
+  } finally { await browser.close(); }
+})().catch(error=>{console.error(error);process.exitCode=1;});

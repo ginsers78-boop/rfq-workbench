@@ -1,0 +1,18 @@
+{
+  "id": "FICTIONAL-REQ-001",
+  "fictional": true,
+  "source": "Customer: Fictional Harbor Trading\nCustomer reference: PRIVATE-CUSTOMER-442\nSelling price: confidential 999 OMR\n\n1. SS hex bolt M10x50, grade A2-70, 120 pcs.\n2. Copper cable 4mm2, 200 m.\n3. PVC elbow 90 degree, 25mm, 40 pcs.\n4. M12 nuts, quantity to be confirmed.",
+  "categories": [
+    {"id": "Fasteners", "description": "Bolts, nuts, washers, screws and other mechanical fasteners."},
+    {"id": "Electrical", "description": "Electrical cables, wiring, switches and electrical fittings."},
+    {"id": "Pipes and fittings", "description": "Pipes, elbows, tees, valves and plumbing fittings, including PVC elbows."},
+    {"id": "Unclassified", "description": "Use only when none of the defined categories fits."}
+  ],
+  "expected": [
+    {"line_number": "1", "quantity": 120, "unit": "pcs", "category": "Fasteners"},
+    {"line_number": "2", "quantity": 200, "unit": "m", "category": "Electrical"},
+    {"line_number": "3", "quantity": 40, "unit": "pcs", "category": "Pipes and fittings"},
+    {"line_number": "4", "quantity": null, "unit": null, "category": "Fasteners"}
+  ],
+  "sensitive_markers": ["Fictional Harbor Trading", "PRIVATE-CUSTOMER-442", "999 OMR"]
+}
